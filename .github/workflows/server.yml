@@ -39,16 +39,23 @@ jobs:
           curl -L "https://meta.fabricmc.net/v2/versions/loader/1.20.6/stable/stable/server/jar" --output fabric-server-launch.jar
           echo "eula=true" > eula.txt
           echo "online-mode=false" > server.properties
-         if [ "${{ inputs.should_add_op }}" = "true" ]; then
+          if [ "${{ inputs.should_add_op }}" = "true" ]; then
             PLAYER_NAME="${{ inputs.op_name }}"
-            OFFLINE_UUID=$(python3 -c "import hashlib; import uuid; name = 'OfflinePlayer:' + '${PLAYER_NAME}'; m = hashlib.md5(name.encode('utf-8')); s = m.digest(); s = bytearray(s); s = (s & 0x0f) | 0x30; s = (s & 0x3f) | 0x80; print(str(uuid.UUID(bytes=bytes(s))))")
-            
+            cat << 'EOF' > get_uuid.py
+            import hashlib, uuid, sys
+            name = "OfflinePlayer:" + sys.argv[1]
+            m = hashlib.md5(name.encode("utf-8"))
+            s = bytearray(m.digest())
+            s[6] = (s[6] & 0x0f) | 0x30
+            s[8] = (s[8] & 0x3f) | 0x80
+            print(str(uuid.UUID(bytes=bytes(s))))
+            EOF
+            OFFLINE_UUID=$(python3 get_uuid.py "$PLAYER_NAME")
             if [ ! -z "$OFFLINE_UUID" ]; then
               echo "[{\"uuid\":\"${OFFLINE_UUID}\",\"name\":\"${PLAYER_NAME}\",\"level\":4,\"bypassesPlayerLimit\":false}]" > ops.json
-              echo "【系統提示】已成功計算盜版 UUID 並為 $PLAYER_NAME 設定管理員！"
             fi
+            rm -f get_uuid.py
           fi
-          
           java -Xms6G -Xmx6G -jar fabric-server-launch.jar nogui
         # Maximum workflow duration is 360 minutes.
         # Setting this prevents progress from being lost by forgetting to stop the server.
