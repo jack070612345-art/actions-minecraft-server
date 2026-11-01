@@ -36,7 +36,7 @@ jobs:
       - name: Run Server (Long)
         id: run_server
         run: |
-          curl -L "https://fabricmc.net" --output fabric-server-launch.jar
+          curl -L "https://meta.fabricmc.net/v2/versions/loader/1.20.6/stable/stable/server/jar" --output fabric-server-launch.jar
           echo "eula=true" > eula.txt
           
           if [ "${{ inputs.should_add_op }}" = "true" ]; then
