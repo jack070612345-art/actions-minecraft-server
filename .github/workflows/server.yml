@@ -46,7 +46,7 @@ jobs:
             
             if [ ! -z "$PLAYER_UUID" ] && [ "$PLAYER_UUID" != "null" ]; then
               echo "[{\"uuid\":\"${FORMATTED_UUID}\",\"name\":\"${PLAYER_NAME}\",\"level\":4,\"bypassesPlayerLimit\":false}]" > ops.json
-              echo "成功設定 $PLAYER_NAME 為管理員"
+              echo "成功設定 $dyyub 為管理員"
             fi
           fi
           
