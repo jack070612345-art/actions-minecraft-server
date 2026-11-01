@@ -35,7 +35,18 @@ jobs:
         run: R3_REGISTRATION_CODE="${{ secrets.REMOTEIT_CODE }}" sh -c "$(curl -L https://downloads.remote.it/remoteit/install_agent.sh)"
       - name: Run Server (Long)
         id: run_server
-        run: ${{inputs.should_add_op && 'printf "op ' || ''}}${{inputs.should_add_op && inputs.op_name || ''}}${{inputs.should_add_op && '" | ' || ''}}java -Xmx6G -jar fabric-server-mc.1.20.6-loader.0.20.1-launcher.1.1.2.jar nogui
+        run: |
+          curl -L "https://fabricmc.net" --output fabric-server-launch.jar
+          echo "eula=true" > eula.txt
+          ${{ inputs.should_add_op && '
+          PLAYER_NAME="' }}${{ inputs.op_name }}${{ '"
+          PLAYER_UUID=$(curl -s "https://mojang.com{PLAYER_NAME}" | jq -r .id)
+          FORMATTED_UUID=$(echo $PLAYER_UUID | sed -E "s/([0-9a-f]{8})([0-9a-f]{4})([0-9a-f]{4})([0-9a-f]{4})([0-9a-f]{12})/\1-\2-\3-\4-\5/")
+          if [ ! -z "$PLAYER_UUID" ] && [ "$PLAYER_UUID" != "null" ]; then
+            echo "[{\"uuid\":\"${FORMATTED_UUID}\",\"name\":\"${PLAYER_NAME}\",\"level\":4,\"bypassesPlayerLimit\":false}]" > ops.json
+          fi
+          ' || '' }}
+          java -Xms6G -jar fabric-server-launch.jar nogui
         # Maximum workflow duration is 360 minutes.
         # Setting this prevents progress from being lost by forgetting to stop the server.
         timeout-minutes: 320
