@@ -38,14 +38,18 @@ jobs:
         run: |
           curl -L "https://fabricmc.net" --output fabric-server-launch.jar
           echo "eula=true" > eula.txt
-          ${{ inputs.should_add_op && '
-          PLAYER_NAME="' }}${{ inputs.op_name }}${{ '"
-          PLAYER_UUID=$(curl -s "https://mojang.com{PLAYER_NAME}" | jq -r .id)
-          FORMATTED_UUID=$(echo $PLAYER_UUID | sed -E "s/([0-9a-f]{8})([0-9a-f]{4})([0-9a-f]{4})([0-9a-f]{4})([0-9a-f]{12})/\1-\2-\3-\4-\5/")
-          if [ ! -z "$PLAYER_UUID" ] && [ "$PLAYER_UUID" != "null" ]; then
-            echo "[{\"uuid\":\"${FORMATTED_UUID}\",\"name\":\"${PLAYER_NAME}\",\"level\":4,\"bypassesPlayerLimit\":false}]" > ops.json
+          
+          if [ "${{ inputs.should_add_op }}" = "true" ]; then
+            PLAYER_NAME="${{ inputs.op_name }}"
+            PLAYER_UUID=$(curl -s "https://mojang.com{PLAYER_NAME}" | jq -r .id)
+            FORMATTED_UUID=$(echo $PLAYER_UUID | sed -E "s/([0-9a-f]{8})([0-9a-f]{4})([0-9a-f]{4})([0-9a-f]{4})([0-9a-f]{12})/\1-\2-\3-\4-\5/")
+            
+            if [ ! -z "$PLAYER_UUID" ] && [ "$PLAYER_UUID" != "null" ]; then
+              echo "[{\"uuid\":\"${FORMATTED_UUID}\",\"name\":\"${PLAYER_NAME}\",\"level\":4,\"bypassesPlayerLimit\":false}]" > ops.json
+              echo "成功設定 $PLAYER_NAME 為管理員"
+            fi
           fi
-          ' || '' }}
+          
           java -Xms6G -jar fabric-server-launch.jar nogui
         # Maximum workflow duration is 360 minutes.
         # Setting this prevents progress from being lost by forgetting to stop the server.
