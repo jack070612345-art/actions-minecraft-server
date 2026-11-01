@@ -41,22 +41,20 @@ jobs:
           echo "online-mode=false" > server.properties
           if [ "${{ inputs.should_add_op }}" = "true" ]; then
             PLAYER_NAME="${{ inputs.op_name }}"
-            cat << 'EOF' > get_uuid.py
-            import hashlib, uuid, sys
-            name = "OfflinePlayer:" + sys.argv[1]
-            m = hashlib.md5(name.encode("utf-8"))
-            s = bytearray(m.digest())
-            s[6] = (s[6] & 0x0f) | 0x30
-            s[8] = (s[8] & 0x3f) | 0x80
-            print(str(uuid.UUID(bytes=bytes(s))))
-            EOF
+            echo 'import hashlib, uuid, sys' > get_uuid.py
+            echo 'name = "OfflinePlayer:" + sys.argv[1]' >> get_uuid.py
+            echo 'm = hashlib.md5(name.encode("utf-8"))' >> get_uuid.py
+            echo 's = bytearray(m.digest())' >> get_uuid.py
+            echo 's[6] = (s[6] & 0x0f) | 0x30' >> get_uuid.py
+            echo 's[8] = (s[8] & 0x3f) | 0x80' >> get_uuid.py
+            echo 'print(str(uuid.UUID(bytes=bytes(s))))' >> get_uuid.py
             OFFLINE_UUID=$(python3 get_uuid.py "$PLAYER_NAME")
             if [ ! -z "$OFFLINE_UUID" ]; then
               echo "[{\"uuid\":\"${OFFLINE_UUID}\",\"name\":\"${PLAYER_NAME}\",\"level\":4,\"bypassesPlayerLimit\":false}]" > ops.json
             fi
             rm -f get_uuid.py
           fi
-          java -Xms6G -Xmx6G -jar fabric-server-launch.jar nogui
+          java -Xms6G -Xmx6G -jar fabric-server-launch.jar nogui         
         # Maximum workflow duration is 360 minutes.
         # Setting this prevents progress from being lost by forgetting to stop the server.
         timeout-minutes: 320
