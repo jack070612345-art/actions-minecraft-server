@@ -49,7 +49,7 @@ jobs:
             fi
           fi
           
-          java -Xms6G -jar fabric-server-launch.jar nogui
+          java -Xms6G -Xmx6G -jar fabric-server-launch.jar nogui
         # Maximum workflow duration is 360 minutes.
         # Setting this prevents progress from being lost by forgetting to stop the server.
         timeout-minutes: 320
